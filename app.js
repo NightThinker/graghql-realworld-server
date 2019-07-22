@@ -2,7 +2,8 @@ const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { createWriteStream } = require('fs');
+// const { createWriteStream } = require('fs');
+const { createWriteStream, existsSync, mkdirSync } = require('fs');
 
 //image
 const multer = require('multer');
@@ -13,7 +14,7 @@ const models = require('./src/database/database');
 const PORT = 4000;
 const app = express();
 
-app.use(cors());
+// app.use(cors());
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -99,8 +100,15 @@ const resolvers = {
     },
     singleUpload: async (parent, args) => {
       console.log('TCL: args', args);
-      const { stream, filename } = await args.file;
-      await storeUpload({ stream, filename });
+      // const { stream, filename } = await args.file;
+      const { createReadStream, filename } = await args.file;
+
+      await new Promise((res) =>
+        createReadStream()
+          .pipe(createWriteStream(path.join(__dirname, './images', filename)))
+          .on('close', res)
+      );
+      // await storeUpload({ stream, filename });
       // return true;
       return {
         filename: 'String!',
@@ -116,12 +124,12 @@ const resolvers = {
     }
   }
 };
-
+// existsSync(path.join(__dirname, './images')) || mkdirSync(path.join(__dirname, './images'));
 const server = new ApolloServer({
-  // cors: {
-  //   origin: '*', // <- allow request from all domains
-  //   credentials: true
-  // },
+  cors: {
+    origin: '*', // <- allow request from all domains
+    credentials: true
+  },
   typeDefs,
   resolvers,
   context: { models },
@@ -130,6 +138,7 @@ const server = new ApolloServer({
     maxFiles: 20
   }
 });
+app.use('/images', express.static(path.join(__dirname, './images')));
 
 server.applyMiddleware({ app });
 
