@@ -106,13 +106,17 @@ const resolvers = {
       // console.log('TCL: filename', filename);
       try {
         if (mimetype === 'image/png' || mimetype === 'image/jpg' || mimetype === 'image/jpeg') {
+          const test = 'animal-art-backlight-219958.jpg';
+          const filePath = path.join(__dirname, './images', test);
+          console.log('TCL: filePath', filePath);
           if (existsSync(path.join(__dirname, './images'))) {
             console.log('dub');
             //rename file
             // const file = new Date().toISOString() + '-' + filename;
-            if (existsSync('./images/66772569_2315018925252113_6299043751218118656_o.jpg')) {
+
+            if (existsSync(filePath)) {
               console.log('dubbbbbb');
-              unlink('./images/66772569_2315018925252113_6299043751218118656_o.jpg', function(err) {
+              unlink(filePath, function(err) {
                 if (err) throw err;
                 console.log('File deleted!');
               });

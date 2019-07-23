@@ -7,12 +7,12 @@ const storeFS = ({ pathfile, stream, filename }) => {
       .on('error', (error) => {
         console.log('TCL: storeFS -> error', error);
         if (stream.truncated) {
+          console.log('gggggggggggg');
           // Delete the truncated file.
           unlinkSync(path);
         }
         reject(error);
       })
-      .on('data', ch)
       .pipe(createWriteStream(path))
       .on('error', (error) => reject(error))
       .on('finish', () => resolve({ path }))
