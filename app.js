@@ -6,7 +6,7 @@ const cors = require('cors');
 const { createWriteStream, existsSync, mkdirSync } = require('fs');
 
 //image
-const multer = require('multer');
+// const multer = require('multer');
 const path = require('path');
 
 const models = require('./src/database/database');
@@ -16,31 +16,31 @@ const app = express();
 
 // app.use(cors());
 
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'images');
-  },
-  filename: (req, file, cb) => {
-    cb(null, new Date().toISOString() + '-' + file.originalname);
-  }
-});
+// const fileStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'images');
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, new Date().toISOString() + '-' + file.originalname);
+//   }
+// });
 
-const fileFilter = (req, file, cb) => {
-  console.log('TCL: fileFilter -> file', file);
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
+// const fileFilter = (req, file, cb) => {
+//   console.log('TCL: fileFilter -> file', file);
+//   if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+//     cb(null, true);
+//   } else {
+//     cb(null, false);
+//   }
+// };
 
-const storeUpload = ({ stream, filename }) =>
-  new Promise((resolve, reject) =>
-    stream
-      .pipe(createWriteStream(filename))
-      .on('finish', () => resolve())
-      .on('error', reject)
-  );
+// const storeUpload = ({ stream, filename }) =>
+//   new Promise((resolve, reject) =>
+//     stream
+//       .pipe(createWriteStream(filename))
+//       .on('finish', () => resolve())
+//       .on('error', reject)
+//   );
 
 // set use body json
 app.use(bodyParser.json());
@@ -100,20 +100,26 @@ const resolvers = {
     },
     singleUpload: async (parent, args) => {
       console.log('TCL: args', args);
-      // const { stream, filename } = await args.file;
-      const { createReadStream, filename } = await args.file;
 
-      await new Promise((res) =>
-        createReadStream()
-          .pipe(createWriteStream(path.join(__dirname, './images', filename)))
-          .on('close', res)
-      );
+      // const { stream, filename } = await args.file;
+      const { createReadStream, filename, mimetype, encoding } = await args.file;
+      const file = new Date().toISOString() + '-' + filename;
+      if (mimetype === 'image/png' || mimetype === 'image/jpg' || mimetype === 'image/jpeg') {
+        await new Promise((res) =>
+          createReadStream()
+            .pipe(createWriteStream(path.join(__dirname, './images', file)))
+            .on('close', res)
+        );
+      } else {
+        throw new Error('filed type not image');
+      }
+
       // await storeUpload({ stream, filename });
       // return true;
       return {
-        filename: 'String!',
-        mimetype: 'String!',
-        encoding: 'String!'
+        filename: filename,
+        mimetype: mimetype,
+        encoding: encoding
       };
       // return args.file.then((file) => {
       //   //Contents of Upload scalar: https://github.com/jaydenseric/graphql-upload#class-graphqlupload
