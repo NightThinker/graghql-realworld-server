@@ -1,8 +1,6 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-// const { createWriteStream } = require('fs');
 const { createWriteStream, existsSync, mkdirSync } = require('fs');
 
 //image
