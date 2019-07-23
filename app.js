@@ -1,13 +1,14 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const bodyParser = require('body-parser');
-const { createWriteStream, existsSync, mkdirSync } = require('fs');
+const { createWriteStream, existsSync, mkdirSync, unlink, writeFileSync, createReadStream } = require('fs');
 
 //image
 // const multer = require('multer');
 const path = require('path');
 
 const models = require('./src/database/database');
+const { storeFS } = require('./src/uploadfile');
 
 const PORT = 4000;
 const app = express();
@@ -97,19 +98,38 @@ const resolvers = {
       return messageUpdate;
     },
     singleUpload: async (parent, args) => {
-      console.log('TCL: args', args);
+      // console.log('TCL: args', args);
 
       // const { stream, filename } = await args.file;
       const { createReadStream, filename, mimetype, encoding } = await args.file;
-      const file = new Date().toISOString() + '-' + filename;
-      if (mimetype === 'image/png' || mimetype === 'image/jpg' || mimetype === 'image/jpeg') {
-        await new Promise((res) =>
-          createReadStream()
-            .pipe(createWriteStream(path.join(__dirname, './images', file)))
-            .on('close', res)
-        );
-      } else {
-        throw new Error('filed type not image');
+      // const { filename, mimetype, encoding } = await args.file;
+      // console.log('TCL: filename', filename);
+      try {
+        if (mimetype === 'image/png' || mimetype === 'image/jpg' || mimetype === 'image/jpeg') {
+          if (existsSync(path.join(__dirname, './images'))) {
+            console.log('dub');
+            //rename file
+            // const file = new Date().toISOString() + '-' + filename;
+            if (existsSync('./images/66772569_2315018925252113_6299043751218118656_o.jpg')) {
+              console.log('dubbbbbb');
+              unlink('./images/66772569_2315018925252113_6299043751218118656_o.jpg', function(err) {
+                if (err) throw err;
+                console.log('File deleted!');
+              });
+            }
+            const stream = createReadStream();
+            const pathfile = './images';
+            const { path } = await storeFS({ pathfile, stream, filename });
+            console.log('TCL: path', path);
+          } else {
+            mkdirSync(path.join(__dirname, './images'));
+            console.log('create folder');
+          }
+        } else {
+          throw new Error('filed type not image');
+        }
+      } catch (err) {
+        console.log(err);
       }
 
       // await storeUpload({ stream, filename });
